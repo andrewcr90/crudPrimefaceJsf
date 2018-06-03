@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 2/06/2018 08:14:13 PM by Hibernate Tools 4.3.1 -->
+<hibernate-mapping>
+    <class name="model.Usuarios" table="usuarios" catalog="estudiantes" optimistic-lock="version">
+        <id name="id" type="java.lang.Integer">
+            <column name="id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="perfil" class="model.Perfil" fetch="select">
+            <column name="perfil_id" />
+        </many-to-one>
+        <property name="usuario" type="string">
+            <column name="usuario" length="100" />
+        </property>
+        <property name="clave" type="string">
+            <column name="clave" length="20" />
+        </property>
+        <property name="rol" type="string">
+            <column name="rol" length="20" />
+        </property>
+        <set name="contactoses" table="contactos" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="idUsuario" not-null="true" />
+            </key>
+            <one-to-many class="model.Contactos" />
+        </set>
+    </class>
+</hibernate-mapping>

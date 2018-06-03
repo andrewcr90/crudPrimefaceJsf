@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='UTF-8' ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets" 
+      xmlns:p="http://primefaces.org/ui" 
+      xmlns:h="http://xmlns.jcp.org/jsf/html" 
+      xmlns:f="http://xmlns.jcp.org/jsf/core"> 
+    <body> 
+
+        <ui:composition template="./../template.xhtml"> 
+            <ui:define name="content"> 
+                <!-- el growl es un componente que nos |permitirÃƒÂ¡ mostrar mensajes al usuario --> 
+                <p:growl id="msgs" showDetail="true" /> 
+                <h:form> 
+                    <!-- agregar un botÃƒÂ³n para abrir la ventana de dialogo con el formulario para crear un nuevo usuario --> 
+                    <p:commandButton id="createButton" update=":formCreate:displayCreateUsuario" oncomplete="dialogUsuarioCreate.show()" icon="ui-icon-document" title="Crear" value="Nuevo Usuario"  rendered="#{loginBean.usuario.perfil.id eq 3 || loginBean.usuario.perfil.id eq 2 }"/> 
+                </h:form>
+                <h:form id="formDatatable">  
+                    <p:dataTable id="usuarios" var="usuarios" value="#{UsuariosBean.usuarios}" 
+                                 paginator="true" rows="5" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" rowsPerPageTemplate="5,10,15">
+                        <p:column headerText="Id" style="width:50px"> 
+                            <h:outputText value="#{usuarios.id}" /> 
+                        </p:column> 
+                        <p:column headerText="Usuario" style="width:150px" filterBy="#{usuarios.usuario}" filterMatchMode="contains" > 
+                            <h:outputText value="#{usuarios.usuario}" /> 
+                        </p:column> 
+                        <p:column headerText="Clave"> 
+                            <h:outputText value="#{usuarios.clave}"/> 
+                        </p:column> 
+                        <p:column style="width:50px"> 
+                            <!-- creamos un botÃƒÂ³n para que despliegue un dialogo con los datos del usuario seleccionado --> 
+                            <p:commandButton id="selectButton" update=":formView" 
+                                             oncomplete="usuarioDialog.show()" 
+                                             icon="ui-icon-search" title="Ver" rendered="#{loginBean.usuario.perfil.id eq 5 || loginBean.usuario.perfil.id eq 2}"> 
+                                <!-- el metodo .show() es un metodo de jquery que permitira mostrar la ventana de dialogo --> 
+                                <f:setPropertyActionListener value="#{usuarios}" 
+                                                             target="#{UsuariosBean.selectedUsuario}" /> 
+                            </p:commandButton> 
+                            <!-- agregamos un botÃƒÂ³n que va a invocar el cuadro de confirmaciÃƒÂ³n para eliminar el registro d ela base de datos-->
+                            <p:commandButton id="borrarButton" update=":formDelete:idborrar" oncomplete="usuarioDialogDelete.show()" icon="ui-icon-trash" title="Eliminar" rendered="#{loginBean.usuario.perfil.id eq 6 || loginBean.usuario.perfil.id eq 2 }"> 
+                                <f:setPropertyActionListener value="#{usuarios}" target="#{UsuariosBean.selectedUsuario}" /> 
+                            </p:commandButton>
+                            <!-- agregamos el botÃƒÂ³n para abrir la ventana de editar --> 
+                            <p:commandButton id="updateButton" update=":formUpdate:displayUpdateUsuario" oncomplete="dialogUsuarioUpdate.show()" icon="ui-icon-pencil" title="Editar"  rendered="#{loginBean.usuario.perfil.id eq 4 || loginBean.usuario.perfil.id eq 2 }"> 
+                                <f:setPropertyActionListener value="#{usuarios}" target="#{UsuariosBean.selectedUsuario}" /> 
+                            </p:commandButton>
+
+                        </p:column> 
+                    </p:dataTable> 
+                </h:form> 
+                <h:form id="formView"> 
+                    <!-- definimos las caracterÃƒÂ­sticas de la ventana de dialogo que mostrarÃƒÂ¡ los datos del usuario seleccionado --> 
+                    <p:dialog header="Ver usuario" widgetVar="usuarioDialog" 
+                              resizable="false" id="usuarioDlg" 
+                              showEffect="fade" hideEffect="explode" modal="true"> 
+                        <h:panelGrid id="display" columns="2" cellpadding="4" style="margin:0 auto;"> 
+                            <h:outputText value="Id:" /> 
+                            <h:outputText value="#{UsuariosBean.selectedUsuario.id}" style="font-weight:bold"/> 
+                            <h:outputText value="Usuario:" /> 
+                            <h:outputText value="#{UsuariosBean.selectedUsuario.usuario}" style="font-weight:bold"/> 
+                            <h:outputText value="Clave:" /> 
+                            <h:outputText value="#{UsuariosBean.selectedUsuario.clave}" style="font-weight:bold"/> 
+                        </h:panelGrid> 
+                    </p:dialog> 
+                </h:form> 
+                <h:form id="formCreate"> 
+                    <p:dialog header="Registrar Usuario" widgetVar="dialogUsuarioCreate" resizable="true" id="dlgUsuarioCreate" showEffect="fade" hideEffect="explode" modal="true"> 
+                        <h:panelGrid id="displayCreateUsuario" columns="1" cellpadding="4" style="margin:0 auto;" > 
+                            <h:outputText value="Usuario:" /> 
+                            <p:inputText  value="#{UsuariosBean.selectedUsuario.usuario}"/>
+                            <h:outputText value="Clave:" />
+                            <p:inputText value="#{UsuariosBean.selectedUsuario.clave}" />            
+                        </h:panelGrid> 
+                        <f:facet name="footer">
+                            <p:commandButton id="btnGuardarNuevo" value="Guardar" actionListener="#{UsuariosBean.btnCreateUsuario(actionEvent)}" oncomplete="dialogUsuarioCreate.hide()" icon="ui-icon-disk" update=":formDatatable, :msgs" /> 
+                            <p:commandButton id="btnCancelarNuevo" value="Cancelar" oncomplete="dialogUsuarioCreate.hide()" icon="ui-icon-close"/> 
+                        </f:facet>
+                    </p:dialog> 
+                </h:form>
+                <h:form id="formDelete" > 
+                    <p:confirmDialog id="confirmDelete" widgetVar="usuarioDialogDelete" header="Eliminar Usuario" message="Desea eliminar el usuario?" showEffect="fade" hideEffect="explode" severity="alert"> 
+                        <p:inputText value="#{UsuariosBean.selectedUsuario.id}" id="idborrar"/> <!-- -->
+                        <p:commandButton value="Si" update=":formDatatable, :msgs" icon="ui-icon-check" oncomplete="usuarioDialogDelete.hide()" actionListener="#{UsuariosBean.btnDeleteUsuario(actionEvent)}" /> 
+                        <p:commandButton value="No" oncomplete="usuarioDialogDelete.hide()" icon="ui-icon-close"/>
+                    </p:confirmDialog> 
+                </h:form>
+                <h:form id="formUpdate">
+                    <p:growl id="msgsUpdate" showDetail="true" life="3000" />
+                    <p:dialog header="Editar usuario" widgetVar="dialogUsuarioUpdate" resizable="false" id="dlgUsuarioUpdate" showEffect="fade" hideEffect="explode" modal="true">
+                        <h:panelGrid id="displayUpdateUsuario" columns="2" cellpadding="4" style="margin:0 auto;">
+                            <h:outputText value="Id:" />
+                            <p:inputText id="idupdateUsuario" value="#{UsuariosBean.selectedUsuario.id}"/> 
+                            <h:outputText value="Usuario:" />
+                            <p:inputText id="usuarioupdate" value="#{UsuariosBean.selectedUsuario.usuario}"/>
+                            <h:outputText value="Clave:" /> 
+                            <p:inputText id="claveupdate" value="#{UsuariosBean.selectedUsuario.clave}"/>
+                        </h:panelGrid>
+                        <f:facet name="footer"> 
+                            <p:commandButton id="btnGuardarUpdate" value="Guardar" actionListener="#{UsuariosBean.btnUpdateUsuario(actionEvent)}" oncomplete="dialogUsuarioUpdate.hide()" icon="ui-icon-disk"  ajax="formDatatable:usuario" update="msgsUpdate"
+
+                                             /> <p:commandButton id="btnCancelarUpdate" value="Cancelar" oncomplete="dialogUsuarioUpdate.hide()" icon="ui-icon-close"/> 
+                        </f:facet> 
+                    </p:dialog> 
+                </h:form>
+            </ui:define> 
+        </ui:composition> 
+    </body> 
+</html>
